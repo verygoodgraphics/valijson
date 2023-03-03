@@ -4,7 +4,7 @@ project(valijson)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(valijson_BUILD_EXAMPLES "Build valijson examples." FALSE)
-option(valijson_BUILD_TESTS "Build valijson test suite." FALSE)
+option(valijson_BUILD_TESTS "Build valijson test suite." TRUE)
 option(valijson_EXCLUDE_BOOST "Exclude Boost when building test suite." FALSE)
 option(valijson_USE_EXCEPTIONS "Use exceptions in valijson and included libs." TRUE)
 
@@ -207,6 +207,10 @@ if(valijson_BUILD_TESTS)
     endif()
 
     target_link_libraries(test_suite ${TEST_LIBS} ${Boost_LIBRARIES})
+
+    include(CTest)
+    include(GoogleTest)
+    gtest_discover_tests(test_suite)
 endif()
 
 if(valijson_BUILD_EXAMPLES)
