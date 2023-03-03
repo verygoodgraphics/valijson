@@ -115,6 +115,7 @@ if(valijson_BUILD_TESTS)
         tests/test_adapter_comparison.cpp
         tests/test_fetch_absolute_uri_document_callback.cpp
         tests/test_fetch_urn_document_callback.cpp
+        tests/test_get_subschema.cpp
         tests/test_json_pointer.cpp
         tests/test_json11_adapter.cpp
         tests/test_jsoncpp_adapter.cpp
