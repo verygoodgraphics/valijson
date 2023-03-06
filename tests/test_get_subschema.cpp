@@ -10,33 +10,30 @@ using namespace std;
 using namespace valijson;
 using namespace valijson::adapters;
 
-int fake_main(int argc, char *argv[]);
+#define TEST_DATA_DIR "../tests/vgg/"
+
+int fake_main(string schema_path, string target_document_path);
 
 TEST(TestGetSubSchema, Smoke)
 {
-    auto result = fake_main(0, NULL);
+    auto result =
+        fake_main(TEST_DATA_DIR "vgg-format.json", TEST_DATA_DIR "2020.json");
 
     EXPECT_EQ(result, 0);
 }
 
-int fake_main(int argc, char *argv[])
+int fake_main(string schema_path, string target_document_path)
 {
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0]
-             << " <schema document> <test/target document>" << endl;
-        return 1;
-    }
-
     // Load the document containing the schema
     nlohmann::json schemaDocument;
-    if (!valijson::utils::loadDocument(argv[1], schemaDocument)) {
+    if (!valijson::utils::loadDocument(schema_path, schemaDocument)) {
         cerr << "Failed to load schema document." << endl;
         return 1;
     }
 
     // Load the document that is to be validated
     nlohmann::json targetDocument;
-    if (!valijson::utils::loadDocument(argv[2], targetDocument)) {
+    if (!valijson::utils::loadDocument(target_document_path, targetDocument)) {
         cerr << "Failed to load target document." << endl;
         return 1;
     }
