@@ -129,8 +129,21 @@ class Schema : public Subschema
         return this;
     }
 
-    const Subschema *getSubschemaByClass(const std::string &class_name) const
+    const Subschema *getSubschemaByTitle(const std::string &value) const
     {
+        auto it = std::find_if(subschemaSet.begin(), subschemaSet.end(),
+                               [&](const Subschema *item) {
+                                   if (item->hasTitle()) {
+                                       std::cout << "# sub schema title is: "
+                                                 << item->getTitle()
+                                                 << std::endl;
+                                       return item->getTitle() == value;
+                                   }
+                                   return false;
+                               });
+        if (it != subschemaSet.end()) {
+            return *it;
+        }
         return nullptr;
     }
 

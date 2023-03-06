@@ -11,18 +11,58 @@ using namespace valijson;
 using namespace valijson::adapters;
 
 #define TEST_DATA_DIR "../tests/vgg/"
+// #define TEST_DATA_DIR "../../tests/vgg/"
 
-int fake_main(string schema_path, string target_document_path);
+int validate_json(const Subschema &schema,
+                  NlohmannJsonAdapter &target_docment_adapter);
+int load_schema(string schema_path, Schema &schema);
+int load_vgg_schema(Schema &schema);
+nlohmann::json load_target_document(string target_document_path);
 
 TEST(TestGetSubSchema, Smoke)
 {
-    auto result =
-        fake_main(TEST_DATA_DIR "vgg-format.json", TEST_DATA_DIR "2020.json");
+    Schema schema;
+    load_vgg_schema(schema);
+
+    auto target = load_target_document(TEST_DATA_DIR "2020.json");
+    NlohmannJsonAdapter targetDocumentAdapter(target);
+    auto result = validate_json(schema, targetDocumentAdapter);
 
     EXPECT_EQ(result, 0);
 }
 
-int fake_main(string schema_path, string target_document_path)
+TEST(TestGetSubSchema, GetColorSubschema)
+{
+    Schema schema;
+    load_vgg_schema(schema);
+
+    auto result = schema.getSubschemaByTitle("Color");
+    EXPECT_TRUE(result != nullptr);
+}
+
+TEST(TestGetSubSchema, ValidateJsonAgainstSubschema)
+{
+    Schema schema;
+    load_vgg_schema(schema);
+
+    auto color_subschema = schema.getSubschemaByTitle("Color");
+    EXPECT_TRUE(color_subschema != nullptr);
+
+    if (color_subschema) {
+        auto target = load_target_document(TEST_DATA_DIR "color.json");
+        NlohmannJsonAdapter targetDocumentAdapter(target);
+        auto result = validate_json(*color_subschema, targetDocumentAdapter);
+
+        EXPECT_EQ(result, 0);
+    }
+}
+
+int load_vgg_schema(Schema &schema)
+{
+    return load_schema(TEST_DATA_DIR "vgg-format.json", schema);
+}
+
+int load_schema(string schema_path, Schema &schema)
 {
     // Load the document containing the schema
     nlohmann::json schemaDocument;
@@ -31,15 +71,7 @@ int fake_main(string schema_path, string target_document_path)
         return 1;
     }
 
-    // Load the document that is to be validated
-    nlohmann::json targetDocument;
-    if (!valijson::utils::loadDocument(target_document_path, targetDocument)) {
-        cerr << "Failed to load target document." << endl;
-        return 1;
-    }
-
     // Parse the json schema into an internal schema format
-    Schema schema;
     SchemaParser parser;
     NlohmannJsonAdapter schemaDocumentAdapter(schemaDocument);
     try {
@@ -49,16 +81,31 @@ int fake_main(string schema_path, string target_document_path)
         return 1;
     }
 
+    return 0;
+}
+
+nlohmann::json load_target_document(string target_document_path)
+{
+    // Load the document that is to be validated
+    nlohmann::json targetDocument;
+    if (!valijson::utils::loadDocument(target_document_path, targetDocument)) {
+        throw std::runtime_error("Failed to load target document.");
+    }
+
+    return targetDocument;
+}
+
+int validate_json(const Subschema &schema,
+                  NlohmannJsonAdapter &target_docment_adapter)
+{
     // Perform validation
     Validator validator(Validator::kStrongTypes);
     ValidationResults results;
-    NlohmannJsonAdapter targetDocumentAdapter(targetDocument);
-    if (!validator.validate(schema, targetDocumentAdapter, &results)) {
+    if (!validator.validate(schema, target_docment_adapter, &results)) {
         std::cerr << "Validation failed." << endl;
         ValidationResults::Error error;
         unsigned int errorNum = 1;
         while (results.popError(error)) {
-
             std::string context;
             std::vector<std::string>::iterator itr = error.context.begin();
             for (; itr != error.context.end(); itr++) {
