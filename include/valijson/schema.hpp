@@ -3,8 +3,8 @@
 #include <cstdio>
 #include <set>
 
-#include <valijson/subschema.hpp>
 #include <valijson/exceptions.hpp>
+#include <valijson/subschema.hpp>
 
 namespace valijson {
 
@@ -14,14 +14,13 @@ namespace valijson {
  * The root is distinct from other sub-schemas because it is the canonical
  * starting point for validation of a document against a given a JSON Schema.
  */
-class Schema: public Subschema
+class Schema : public Subschema
 {
-public:
+  public:
     /**
      * @brief  Construct a new Schema instance with no constraints
      */
-    Schema()
-      : sharedEmptySubschema(newSubschema()) { }
+    Schema() : sharedEmptySubschema(newSubschema()) {}
 
     /**
      * @brief  Construct a new Schema using custom memory management
@@ -33,14 +32,15 @@ public:
      *                  the `customAlloc` function
      */
     Schema(CustomAlloc allocFn, CustomFree freeFn)
-      : Subschema(allocFn, freeFn),
-        sharedEmptySubschema(newSubschema()) { }
+        : Subschema(allocFn, freeFn), sharedEmptySubschema(newSubschema())
+    {
+    }
 
     // Disable copy construction
     Schema(const Schema &) = delete;
 
     // Disable copy assignment
-    Schema & operator=(const Schema &) = delete;
+    Schema &operator=(const Schema &) = delete;
 
     /**
      * @brief  Clean up and free all memory managed by the Schema
@@ -81,7 +81,7 @@ public:
      *         instance
      */
     void addConstraintToSubschema(const Constraint &constraint,
-            const Subschema *subschema)
+                                  const Subschema *subschema)
     {
         // TODO: Check heirarchy for subschemas that do not belong...
 
@@ -93,7 +93,7 @@ public:
      *
      * @returns  const pointer to the new Subschema instance
      */
-    const Subschema * createSubschema()
+    const Subschema *createSubschema()
     {
         Subschema *subschema = newSubschema();
 
@@ -101,8 +101,7 @@ public:
         try {
 #endif
             if (!subschemaSet.insert(subschema).second) {
-                throwRuntimeError(
-                        "Failed to store pointer for new sub-schema");
+                throwRuntimeError("Failed to store pointer for new sub-schema");
             }
 #if VALIJSON_USE_EXCEPTIONS
         } catch (...) {
@@ -117,7 +116,7 @@ public:
     /**
      * @brief  Return a pointer to the shared empty schema
      */
-    const Subschema * emptySubschema() const
+    const Subschema *emptySubschema() const
     {
         return sharedEmptySubschema;
     }
@@ -125,9 +124,14 @@ public:
     /**
      * @brief  Get a pointer to the root sub-schema of this Schema instance
      */
-    const Subschema * root() const
+    const Subschema *root() const
     {
         return this;
+    }
+
+    const Subschema *getSubschemaByClass(const std::string &class_name) const
+    {
+        return nullptr;
     }
 
     void setAlwaysInvalid(const Subschema *subschema, bool value)
@@ -143,7 +147,7 @@ public:
      * @param  description  new description
      */
     void setSubschemaDescription(const Subschema *subschema,
-            const std::string &description)
+                                 const std::string &description)
     {
         mutableSubschema(subschema)->setDescription(description);
     }
@@ -172,14 +176,13 @@ public:
         mutableSubschema(subschema)->setTitle(title);
     }
 
-private:
-
+  private:
     Subschema *newSubschema()
     {
         void *ptr = m_allocFn(sizeof(Subschema));
         if (!ptr) {
             throwRuntimeError(
-                    "Failed to allocate memory for shared empty sub-schema");
+                "Failed to allocate memory for shared empty sub-schema");
         }
 
 #if VALIJSON_USE_EXCEPTIONS
@@ -194,28 +197,27 @@ private:
 #endif
     }
 
-    Subschema * mutableSubschema(const Subschema *subschema)
+    Subschema *mutableSubschema(const Subschema *subschema)
     {
         if (subschema == this) {
             return this;
         }
 
         if (subschema == sharedEmptySubschema) {
-            throwRuntimeError(
-                    "Cannot modify the shared empty sub-schema");
+            throwRuntimeError("Cannot modify the shared empty sub-schema");
         }
 
-        auto *noConst = const_cast<Subschema*>(subschema);
+        auto *noConst = const_cast<Subschema *>(subschema);
         if (subschemaSet.find(noConst) == subschemaSet.end()) {
             throwRuntimeError(
-                    "Subschema pointer is not owned by this Schema instance");
+                "Subschema pointer is not owned by this Schema instance");
         }
 
         return noConst;
     }
 
     /// Set of Subschema instances owned by this schema
-    std::set<Subschema*> subschemaSet;
+    std::set<Subschema *> subschemaSet;
 
     /// Empty schema that can be reused by multiple constraints
     const Subschema *sharedEmptySubschema;
