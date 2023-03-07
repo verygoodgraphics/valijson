@@ -130,6 +130,21 @@ public:
         return this;
     }
 
+    const Subschema *getSubschemaByTitle(const std::string &value) const
+    {
+        auto it = std::find_if(subschemaSet.begin(), subschemaSet.end(),
+                               [&](const Subschema *item) {
+                                   if (item->hasTitle()) {
+                                       return item->getTitle() == value;
+                                   }
+                                   return false;
+                               });
+        if (it != subschemaSet.end()) {
+            return *it;
+        }
+        return nullptr;
+    }
+
     void setAlwaysInvalid(const Subschema *subschema, bool value)
     {
         mutableSubschema(subschema)->setAlwaysInvalid(value);
