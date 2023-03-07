@@ -135,9 +135,6 @@ public:
         auto it = std::find_if(subschemaSet.begin(), subschemaSet.end(),
                                [&](const Subschema *item) {
                                    if (item->hasTitle()) {
-                                       std::cout << "# sub schema title is: "
-                                                 << item->getTitle()
-                                                 << std::endl;
                                        return item->getTitle() == value;
                                    }
                                    return false;
